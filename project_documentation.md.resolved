@@ -1,0 +1,84 @@
+# Project Documentation: Biometric Authentication System
+
+## Overview
+This project is a web-based biometric authentication system built with **Streamlit** (frontend) and **DeepFace** (backend logic). It allows users to:
+1.  **Enroll**: Capture a face image and save it under a specific username.
+2.  **Verify**: Capture a new face image and check if it matches the enrolled image for a given username.
+
+The system uses a simple file-based database where images are stored as `database/{username}.jpg`.
+
+---
+
+## How It Works
+
+### Enrollment Process
+1.  User enters a **Username**.
+2.  User captures a photo using the **Streamlit Camera Input** widget.
+3.  User clicks **"Complete Enrollment"**.
+4.  The system checks if the username is valid and doesn't already exist.
+5.  The captured image is saved to the `database` folder.
+
+### Verification Process
+1.  User enters a **Username**.
+2.  User captures a photo using the **Streamlit Camera Input** widget.
+3.  User clicks **"Verify Identity"**.
+4.  The system checks if the user exists in `database/`.
+5.  The system temporarily saves the new image.
+6.  **DeepFace** compares the stored image (enrollment) with the new image (verification).
+7.  The system returns "Success" if they match, or "Face does not match" otherwise.
+
+---
+
+## File Explanations
+
+### 1. [main.py](file:///c:/Users/moras/Downloads/biometric_face_detection_project/project/main.py)
+This file runs the Streamlit web application. It handles the UI, user input, and calls the backend logic.
+
+| Line | Code | Explanation |
+| :--- | :--- | :--- |
+| 1 | `import streamlit as st` | Imports the Streamlit library for building the web interface. |
+| 2 | `from enrollment_and_verification import enrollment, verification` | Imports the custom functions for handling logic from the other file. |
+| 3 | | (Empty line) |
+| 4 | `st.set_page_config(...)` | Sets the browser tab title and layout to "centered". |
+| 5 | | (Empty line) |
+| 6 | `st.title("🔐 ...")` | Displays the main title of the application on the page. |
+| 7 | | (Empty line) |
+| 8-11 | `option = st.radio(...)` | Creates a radio button menu for the user to choose between "Enrollment" or "Verification". |
+| 13 | `username = st.text_input(...)` | Creates a text box for the user to type their username. |
+| 15 | `if option == "Enrollment":` | Checks if the user selected "Enrollment" mode. |
+| 16 | `st.info(...)` | Displays a blue informational box with instructions. |
+| 17 | `img_file = st.camera_input(...)` | SHOWS THE CAMERA! This widget lets the user take a picture. The result is stored in `img_file`. |
+| 19 | `if img_file is not None:` | Checks if the user has actually taken a picture. |
+| 20 | `if st.button("Complete Enrollment"):` | Checks if the user clicked the enrollment button. |
+| 21 | `if not username:` | Checks if the username box is empty. |
+| 22 | `st.warning(...)` | Warns the user if they forgot to type a name. |
+| 23 | `else:` | If username exists... |
+| 24 | `success, message = enrollment(...)` | **CRITICAL**: Calls the [enrollment](file:///c:/Users/moras/Downloads/biometric_face_detection_project/project/enrollment_and_verification.py#9-33) function, passing the name and the photo. |
+| 25-28 | `if success: ... else: ...` | Displays a green Success message or red Error message based on the result. |
+| 30 | `elif option == "Verification":` | Checks if the user selected "Verification" mode. |
+| 31-43 | (Similar logic) | Repeats similar steps: show camera, take photo, check username, call [verification()](file:///c:/Users/moras/Downloads/biometric_face_detection_project/project/enrollment_and_verification.py#35-73), show result. |
+
+### 2. [enrollment_and_verification.py](file:///c:/Users/moras/Downloads/biometric_face_detection_project/project/enrollment_and_verification.py)
+This file contains the "backend" logic using OpenCV and DeepFace.
+
+| Line | Code | Explanation |
+| :--- | :--- | :--- |
+| 1 | `from deepface import DeepFace` | Imports the AI library for face recognition. |
+| 2 | `import cv2 as cv` | Imports OpenCV (though largely unused now, kept for utility). |
+| 3 | `import os` | Imports OS library for file and folder operations. |
+| 6-7 | `if not os.path.exists...` | Checks if a `database` folder exists. If not, it creates it automatically. |
+| 9 | `def enrollment(username, image_buffer):` | Defines the function. It takes a name and the image data from Streamlit. |
+| 13-19 | (Validation logic) | Checks if username is empty or has weird characters. Returns validation errors if so. |
+| 21 | `file_path = ...` | Creates the filename, e.g., `database/john.jpg`. |
+| 23 | `if os.path.exists...` | Prevents overwriting valid users. Returns error if user exists. |
+| 27-29 | `with open(..., "wb") as f:` | **SAVES THE IMAGE**. Writes the bytes from `image_buffer` to the hard drive. |
+| 30 | `return True, ...` | Returns success if saving worked. |
+| 31-32 | `except...` | Catches unexpected file errors (e.g., permission denied). |
+| 35 | `def verification(username, image_buffer):` | Defines the verification function. |
+| 42 | `safe_username = ...` | Sanitizes the input username again. |
+| 46 | `if not os.path.exists...` | Checks if the user is actually enrolled. If not, returns error. |
+| 49 | `temp_img = "temp_verify.jpg"` | Defines a temporary filename for the new photo. |
+| 52-53 | `with open(...)` | Saves the *new* photo to disk so DeepFace can read it. |
+| 56-60 | `result = DeepFace.verify(...)` | **THE CORE AI**. Compares `registered_img` (saved) vs `temp_img` (new). |
+| 62 | `if result["verified"]:` | Checks the DeepFace result dictionary. True if faces match. |
+| 71-72 | `if os.path.exists...` | **CLEANUP**. Deletes the temporary `temp_verify.jpg` file to keep things clean. |

@@ -82,4 +82,6 @@ This project is a **Face-Based Biometric Authentication System** built using **P
 
 - [@mohumedraslan](https://github.com/mohumedraslan)
 - [@HamdyHegazy](https://github.com/HamdyHegazy)
+- [@eyadeltabal](https://github.com/eyadeltabal1)
+
 

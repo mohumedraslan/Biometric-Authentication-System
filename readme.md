@@ -80,6 +80,6 @@ This project is a **Face-Based Biometric Authentication System** built using **P
 
 ## 👥 Contributors
 
-- **mohumedraslan**
-- **HamdyHegazy**
+- **@mohumedraslan**
+- **@HamdyHegazy**
 
